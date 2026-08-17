@@ -3,14 +3,16 @@ from googleapiclient.discovery import build
 import json
 import os
 
-# قراءة بيانات الـ Secret من بيئة العمل
+# قراءة الـ Secret وإصلاح صيغة المفتاح الخاص تلقائياً
 creds_json = os.environ.get("YOUTUBE_CREDENTIALS")
 creds_dict = json.loads(creds_json)
 
-# اعتماد حساب الخدمة بالشكل الصحيح
+# التأكد من تحويل الـ \n النصية إلى أسطر حقيقية للمفتاح
+if "private_key" in creds_dict:
+    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+
 credentials = service_account.Credentials.from_service_account_info(
     creds_dict, scopes=["https://www.googleapis.com/auth/youtube.upload"]
 )
 
-# بناء اتصال يوتيوب
 youtube = build("youtube", "v3", credentials=credentials)
