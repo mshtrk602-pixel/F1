@@ -1,40 +1,16 @@
-import os
-import json
-import subprocess
-from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+import json
+import os
 
-# 1. تنزيل الفيديو
-video_url = os.environ.get("VIDEO_URL")
-video_title = os.environ.get("VIDEO_TITLE", "Uploaded Video")
-output_file = "downloaded_video.mp4"
+# قراءة الـ Credentials من الـ Environment Variable (GitHub Secret)
+creds_json = os.environ.get("YOUTUBE_CREDENTIALS")
+creds_dict = json.loads(creds_json)
 
-print(f"جاري تنزيل الفيديو من: {video_url}")
-subprocess.run(["yt-dlp", "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best", "-o", output_file, video_url], check=True)
+# استخدام حساب الخدمة (Service Account)
+credentials = service_account.Credentials.from_service_account_info(
+    creds_dict, scopes=["https://www.googleapis.com/auth/youtube.upload"]
+)
 
-# 2. إعداد الاتصال بـ YouTube API
-creds_raw = os.environ.get("YOUTUBE_CREDENTIALS")
-creds_json = json.loads(creds_raw)
-creds = Credentials.from_authorized_user_info(creds_json)
-youtube = build("youtube", "v3", credentials=creds)
-
-# 3. رفع الفيديو إلى القناة
-body = {
-    "snippet": {
-        "title": video_title,
-        "description": "تم الرفع تلقائياً بواسطة نظام الأتمتة.",
-        "categoryId": "20"
-    },
-    "status": {
-        "privacyStatus": "public"
-    }
-}
-
-media = MediaFileUpload(output_file, chunksize=-1, resumable=True)
-print("جاري رفع الفيديو إلى يوتيوب...")
-request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
-response = request.execute()
-
-print(f"تم الرفع بنجاح! معرف الفيديو: {response.get('id')}")
-
+# بناء اتصال يوتيوب
+youtube = build("youtube", "v3", credentials=credentials)
