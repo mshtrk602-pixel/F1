@@ -1,16 +1,18 @@
+import os
+import json
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-import os
 
-# قراءة البيانات مباشرة من المتغيرات المنفصلة
+# 1. جلب البيانات من متغيرات البيئة التي حددناها في الـ GitHub Secrets
 client_email = os.environ.get("YOUTUBE_CLIENT_EMAIL")
 private_key = os.environ.get("YOUTUBE_PRIVATE_KEY")
 
-# التأكد من صحة استبدال الأسطر الجديدة في المفتاح
+# 2. تصحيح تنسيق المفتاح (استبدال الرموز الخاصة وإضافة السطور)
 if private_key:
-    private_key = private_key.replace("\\n", "\n")
+    # إزالة أي علامات اقتباس إضافية وتصحيح الـ newline
+    private_key = private_key.replace("\\n", "\n").strip('"')
 
-# بناء هيكل الاعتماديات لحساب الخدمة
+# 3. بناء قاموس الاعتمادات (Credentials)
 creds_dict = {
     "type": "service_account",
     "project_id": "auto-uploader-505816",
@@ -20,10 +22,16 @@ creds_dict = {
     "token_uri": "https://oauth2.googleapis.com/token",
 }
 
-credentials = service_account.Credentials.from_service_account_info(
-    creds_dict, scopes=["https://www.googleapis.com/auth/youtube.upload"]
-)
+# 4. المصادقة والاتصال بخدمة يوتيوب
+try:
+    credentials = service_account.Credentials.from_service_account_info(
+        creds_dict, scopes=["https://www.googleapis.com/auth/youtube.upload"]
+    )
+    youtube = build("youtube", "v3", credentials=credentials)
+    print("تم الاتصال بنجاح بواسطة حساب الخدمة!")
+    
+    # هنا ضع الكود الخاص بك لرفع الفيديو أو العمليات التي تريد تنفيذها
+    # مثال: youtube.videos().insert(...).execute()
 
-# بناء اتصال يوتيوب
-youtube = build("youtube", "v3", credentials=credentials)
-print("تم الاتصال بيوتيوب بنجاح تام عبر حساب الخدمة!")
+except Exception as e:
+    print(f"حدث خطأ أثناء المصادقة: {e}")
