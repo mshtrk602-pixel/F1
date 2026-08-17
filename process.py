@@ -3,16 +3,21 @@ from googleapiclient.discovery import build
 import json
 import os
 
-# قراءة الـ Secret وإصلاح صيغة المفتاح الخاص تلقائياً
+# قراءة الـ Secret وتحويله إلى قاموس
 creds_json = os.environ.get("YOUTUBE_CREDENTIALS")
 creds_dict = json.loads(creds_json)
 
-# التأكد من تحويل الـ \n النصية إلى أسطر حقيقية للمفتاح
-if "private_key" in creds_dict:
-    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+# إصلاح الأسطر الخاصة بالمفتاح الخاص لضمان عدم حدوث خطأ Invalid private key
+private_key = creds_dict.get("private_key", "")
+if "\\n" in private_key and "\n" not in private_key:
+    private_key = private_key.replace("\\n", "\n")
+creds_dict["private_key"] = private_key
 
+# إنشاء الاعتماد باستخدام حساب الخدمة
 credentials = service_account.Credentials.from_service_account_info(
     creds_dict, scopes=["https://www.googleapis.com/auth/youtube.upload"]
 )
 
+# بناء اتصال يوتيوب
 youtube = build("youtube", "v3", credentials=credentials)
+print("تم الاتصال بيوتيوب بنجاح عبر حساب الخدمة!")
