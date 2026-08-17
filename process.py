@@ -1,18 +1,18 @@
 import os
-import json
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-# 1. جلب البيانات من متغيرات البيئة التي حددناها في الـ GitHub Secrets
+# 1. جلب البيانات من Secrets والمدخلات
 client_email = os.environ.get("YOUTUBE_CLIENT_EMAIL")
 private_key = os.environ.get("YOUTUBE_PRIVATE_KEY")
+video_url = os.environ.get("VIDEO_URL")
+video_title = os.environ.get("VIDEO_TITLE")
 
-# 2. تصحيح تنسيق المفتاح (استبدال الرموز الخاصة وإضافة السطور)
+# 2. معالجة المفتاح ليكون بتنسيق صحيح (مهم جداً)
 if private_key:
-    # إزالة أي علامات اقتباس إضافية وتصحيح الـ newline
-    private_key = private_key.replace("\\n", "\n").strip('"')
+    private_key = private_key.replace("\\n", "\n")
 
-# 3. بناء قاموس الاعتمادات (Credentials)
+# 3. بناء الاعتمادات
 creds_dict = {
     "type": "service_account",
     "project_id": "auto-uploader-505816",
@@ -22,16 +22,17 @@ creds_dict = {
     "token_uri": "https://oauth2.googleapis.com/token",
 }
 
-# 4. المصادقة والاتصال بخدمة يوتيوب
 try:
     credentials = service_account.Credentials.from_service_account_info(
         creds_dict, scopes=["https://www.googleapis.com/auth/youtube.upload"]
     )
     youtube = build("youtube", "v3", credentials=credentials)
-    print("تم الاتصال بنجاح بواسطة حساب الخدمة!")
     
-    # هنا ضع الكود الخاص بك لرفع الفيديو أو العمليات التي تريد تنفيذها
-    # مثال: youtube.videos().insert(...).execute()
+    print(f"تم الاتصال بنجاح!")
+    print(f"جاري معالجة الفيديو: {video_title}")
+    print(f"الرابط: {video_url}")
+    
+    # هنا سيأتي لاحقاً كود yt-dlp للتحميل وكود youtube للرفع
 
 except Exception as e:
-    print(f"حدث خطأ أثناء المصادقة: {e}")
+    print(f"خطأ في المصادقة: {e}")
