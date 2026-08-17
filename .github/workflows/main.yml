@@ -2,7 +2,13 @@ name: Auto Video Republisher
 
 on:
   workflow_dispatch:
-  # (أو أي أوقات جدولة أخرى لديك)
+    inputs:
+      video_url:
+        description: 'رابط الفيديو (Video URL)'
+        required: true
+      video_title:
+        description: 'عنوان الفيديو (Video Title)'
+        required: true
 
 jobs:
   process-and-upload:
@@ -25,4 +31,6 @@ jobs:
         env:
           YOUTUBE_CLIENT_EMAIL: ${{ secrets.YOUTUBE_CLIENT_EMAIL }}
           YOUTUBE_PRIVATE_KEY: ${{ secrets.YOUTUBE_PRIVATE_KEY }}
+          VIDEO_URL: ${{ github.event.inputs.video_url }}
+          VIDEO_TITLE: ${{ github.event.inputs.video_title }}
         run: python process.py
