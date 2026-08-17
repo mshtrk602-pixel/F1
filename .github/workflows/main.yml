@@ -2,14 +2,7 @@ name: Auto Video Republisher
 
 on:
   workflow_dispatch:
-    inputs:
-      video_url:
-        description: 'رابط الفيديو'
-        required: true
-      title:
-        description: 'عنوان الفيديو'
-        required: false
-        default: 'فيديو جديد'
+  # (أو أي أوقات جدولة أخرى لديك)
 
 jobs:
   process-and-upload:
@@ -25,13 +18,11 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
+          pip install --upgrade pip
           pip install yt-dlp google-api-python-client google-auth-oauthlib google-auth-httplib2
 
       - name: Run Process Script
         env:
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-          VIDEO_URL: ${{ github.event.inputs.video_url }}
-          VIDEO_TITLE: ${{ github.event.inputs.title }}
+          YOUTUBE_CLIENT_EMAIL: ${{ secrets.YOUTUBE_CLIENT_EMAIL }}
+          YOUTUBE_PRIVATE_KEY: ${{ secrets.YOUTUBE_PRIVATE_KEY }}
         run: python process.py
-
